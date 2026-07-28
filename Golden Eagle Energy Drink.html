@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOLDEN EAGLE - The Drink</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: radial-gradient(ellipse at center, #1a1000 0%, #0a0500 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Arial Black', 'Segoe UI', sans-serif;
+    overflow: hidden;
+    user-select: none;
+    cursor: default;
+  }
+
+  .scene {
+    position: relative;
+    width: 500px;
+    height: 700px;
+  }
+
+  /* Can */
+  .can-container {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+  }
+
+  .can {
+    width: 180px;
+    height: 280px;
+    background: linear-gradient(90deg,
+      #B8860B 0%, #DAA520 15%, #FFF 20%, #F0C75E 28%,
+      #D4A017 35%, #B8860B 50%, #DAA520 65%,
+      #F0C75E 72%, #FFF 80%, #DAA520 85%, #B8860B 100%
+    );
+    border-radius: 14px 14px 20px 20px;
+    position: relative;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 60px rgba(218,165,32,0.3);
+    border: 2px solid #8B6914;
+    transition: transform 0.3s;
+  }
+  .can:hover { transform: scale(1.03); }
+
+  .can-top {
+    position: absolute;
+    top: -6px; left: -2px; right: -2px;
+    height: 25px;
+    background: linear-gradient(180deg, #DDD, #999 50%, #777);
+    border-radius: 16px 16px 4px 4px;
+    z-index: 2;
+  }
+  .can-tab {
+    position: absolute;
+    top: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 16px; height: 20px;
+    background: #C0C0C0;
+    border-radius: 50%;
+    z-index: 5;
+    cursor: pointer;
+    transition: transform 0.15s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  }
+  .can-tab:hover { transform: translateX(-50%) scale(1.2); }
+  .can-tab.pulled {
+    transform: translateX(-50%) rotate(-30deg) translateY(3px);
+  }
+  .can-opening {
+    position: absolute;
+    top: 4px; left: 50%;
+    transform: translateX(-50%);
+    width: 30px; height: 8px;
+    background: #333;
+    border-radius: 4px;
+    z-index: 4;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .can-opening.open { opacity: 1; }
+
+  .can-label {
+    position: absolute;
+    top: 30px; left: 0; right: 0; bottom: 10px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .can-label .eagle-small {
+    width: 80px; height: 70px;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+  }
+  .can-label .brand {
+    font-size: 22px; font-weight: 900;
+    letter-spacing: 3px;
+    background: linear-gradient(180deg, #FFF, #FFD700 40%, #DAA520);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+    text-align: center;
+    margin-top: -5px;
+  }
+  .can-label .brand small {
+    display: block;
+    font-size: 15px;
+  }
+
+  /* The poured drink - golden liquid */
+  .liquid-stream {
+    position: absolute;
+    top: 35px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 0;
+    background: linear-gradient(180deg,
+      rgba(255,215,0,0.9), rgba(255,180,0,0.85),
+      rgba(255,200,50,0.8)
+    );
+    border-radius: 6px;
+    z-index: 1;
+    transition: height 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+  }
+  .liquid-stream.pouring {
+    height: 350px;
+    opacity: 1;
+  }
+
+  /* Pool of drink */
+  .pool {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    background: radial-gradient(ellipse,
+      rgba(255,215,0,0.7), rgba(255,180,0,0.5),
+      rgba(200,140,0,0.3), transparent
+    );
+    border-radius: 50%;
+    z-index: 0;
+    transition: all 2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .pool.full {
+    width: 350px;
+    height: 80px;
+  }
+
+  /* Splash particles */
+  .splash {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: #FFD700;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  /* Glass with drink */
+  .glass {
+    position: absolute;
+    bottom: 70px;
+    right: 20px;
+    width: 100px;
+    height: 140px;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.8s 1.5s;
+  }
+  .glass.visible { opacity: 1; }
+
+  .glass-body {
+    width: 100%; height: 100%;
+    background: rgba(255,255,255,0.1);
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top: none;
+    border-radius: 4px 4px 30px 30px;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(4px);
+  }
+  .glass-fill {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 0%;
+    background: linear-gradient(180deg,
+      rgba(255,200,20,0.6), rgba(255,160,0,0.8),
+      rgba(200,120,0,0.9)
+    );
+    transition: height 2s cubic-bezier(0.4, 0, 0.2, 1) 1.8s;
+  }
+  .glass-fill.filled { height: 75%; }
+
+  /* Bubbles in glass */
+  .bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,200,0.4);
+    animation: rise 2s infinite;
+  }
+  @keyframes rise {
+    0% { transform: translateY(0); opacity: 0.6; }
+    100% { transform: translateY(-40px); opacity: 0; }
+  }
+
+  /* Frost on glass */
+  .frost {
+    position: absolute;
+    bottom: 80px;
+    right: 25px;
+    width: 90px;
+    height: 50px;
+    background: radial-gradient(ellipse at center,
+      rgba(255,255,255,0.15) 0%, transparent 70%
+    );
+    border-radius: 50%;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 1s 2.5s;
+  }
+
+  /* Vapor/steam */
+  .vapor {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 30px;
+    z-index: 6;
+    opacity: 0;
+    transition: opacity 1s 2s;
+  }
+  .vapor .wisp {
+    position: absolute;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    animation: wisp 3s infinite;
+  }
+  @keyframes wisp {
+    0% { transform: translateY(0) scale(0.8); opacity: 0.5; }
+    50% { transform: translateY(-25px) scale(1.5); opacity: 0.15; }
+    100% { transform: translateY(-50px) scale(2); opacity: 0; }
+  }
+
+  /* Button */
+  .action-btn {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 14px 40px;
+    background: linear-gradient(180deg, #DAA520, #B8860B);
+    color: #1a1a1a;
+    border: none;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(218,165,32,0.4);
+    z-index: 10;
+    transition: all 0.3s;
+  }
+  .action-btn:hover {
+    transform: translateX(-50%) scale(1.05);
+    box-shadow: 0 8px 30px rgba(218,165,32,0.6);
+  }
+  .action-btn:active { transform: translateX(-50%) scale(0.95); }
+
+  /* Glow behind everything */
+  .ambient-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px; height: 500px;
+    background: radial-gradient(ellipse,
+      rgba(255,180,0,0.15) 0%, transparent 70%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @media (max-width: 500px) {
+    .scene { width: 350px; height: 550px; transform: scale(0.8); }
+    .glass { right: 5px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="ambient-glow"></div>
+
+  <!-- Pool of golden drink -->
+  <div class="pool" id="pool"></div>
+
+  <!-- Liquid stream from can -->
+  <div class="liquid-stream" id="stream"></div>
+
+  <!-- Splashes container -->
+  <div id="splashes"></div>
+
+  <!-- Glass -->
+  <div class="glass" id="glass">
+    <div class="glass-body">
+      <div class="glass-fill" id="glassFill"></div>
+    </div>
+  </div>
+  <div class="frost" id="frost"></div>
+
+  <!-- Vapor -->
+  <div class="vapor" id="vapor">
+    <div class="wisp" style="left:10px; top:0; width:20px; height:15px; animation-delay:0s;"></div>
+    <div class="wisp" style="left:25px; top:5px; width:15px; height:10px; animation-delay:1s;"></div>
+    <div class="wisp" style="left:5px; top:2px; width:18px; height:12px; animation-delay:2s;"></div>
+  </div>
+
+  <!-- Can -->
+  <div class="can-container" id="canContainer">
+    <div class="can-tab" id="tab" title="Pull to open!"></div>
+    <div class="can-opening" id="opening"></div>
+    <div class="can">
+      <div class="can-top"></div>
+      <div class="can-label">
+        <svg class="eagle-small" viewBox="0 0 100 90">
+          <g transform="translate(50,45)">
+            <path d="M0,-5 Q-45,-40 -50,-25 Q-40,-12 -25,-5 Q-15,0 0,-5Z"
+              fill="#1a1a1a" stroke="#DAA520" stroke-width="1"/>
+            <path d="M0,-5 Q45,-40 50,-25 Q40,-12 25,-5 Q15,0 0,-5Z"
+              fill="#1a1a1a" stroke="#DAA520" stroke-width="1"/>
+            <ellipse cx="0" cy="8" rx="12" ry="18" fill="#1a1a1a"/>
+            <circle cx="0" cy="-14" r="8" fill="#1a1a1a"/>
+            <path d="M-6,-14 Q-7,-22 -3,-24 Q0,-26 3,-24 Q7,-22 6,-14Z" fill="#FFF"/>
+            <path d="M-2,-12 L0,-7 L2,-12" fill="#DAA520"/>
+            <circle cx="-3" cy="-15" r="2" fill="#FFD700"/>
+            <circle cx="3" cy="-15" r="2" fill="#FFD700"/>
+            <circle cx="-3" cy="-15" r="3.5" fill="#CC0000" opacity="0.35"/>
+            <circle cx="3" cy="-15" r="3.5" fill="#CC0000" opacity="0.35"/>
+          </g>
+        </svg>
+        <div class="brand">GOLDEN<br><small>EAGLE</small></div>
+        <div style="font-size:9px;letter-spacing:4px;color:#1a1a1a;margin-top:5px;font-weight:700;">ENERGY DRINK</div>
+        <div style="margin-top:8px;background:#CC0000;color:#FFF;padding:3px 12px;border-radius:3px;font-size:8px;font-weight:900;letter-spacing:3px;">⚡ 160mg CAFFEINE</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="action-btn" id="btn" onclick="pourDrink()">🍺 Pour Drink</button>
+</div>
+
+<script>
+  let opened = false;
+
+  function pourDrink() {
+    if (opened) return;
+    opened = true;
+
+    const tab = document.getElementById('tab');
+    const opening = document.getElementById('opening');
+    const stream = document.getElementById('stream');
+    const pool = document.getElementById('pool');
+    const glass = document.getElementById('glass');
+    const glassFill = document.getElementById('glassFill');
+    const frost = document.getElementById('frost');
+    const vapor = document.getElementById('vapor');
+    const btn = document.getElementById('btn');
+    const can = document.getElementById('canContainer');
+
+    // Pull tab
+    tab.classList.add('pulled');
+    opening.classList.add('open');
+
+    // Tilt can
+    setTimeout(() => {
+      can.style.transform = 'rotate(-25deg)';
+    }, 300);
+
+    // Pour!
+    setTimeout(() => {
+      stream.classList.add('pouring');
+      pool.classList.add('full');
+      glass.classList.add('visible');
+      glassFill.classList.add('filled');
+      frost.style.opacity = '1';
+      vapor.style.opacity = '1';
+      createSplashes();
+      btn.textContent = '🦅 ENJOY!';
+      btn.style.background = 'linear-gradient(180deg, #FFD700, #CC0000)';
+      btn.style.color = '#FFF';
+    }, 600);
+
+    // Bubbles in glass
+    setTimeout(createBubbles, 2500);
+
+    // Reset button after a while
+    setTimeout(() => {
+      btn.onclick = resetAll;
+      btn.textContent = '🔄 Pour Again';
+    }, 4000);
+  }
+
+  function resetAll() {
+    opened = false;
+    document.getElementById('tab').classList.remove('pulled');
+    document.getElementById('opening').classList.remove('open');
+    document.getElementById('stream').classList.remove('pouring');
+    document.getElementById('pool').classList.remove('full');
+    document.getElementById('glass').classList.remove('visible');
+    document.getElementById('glassFill').classList.remove('filled');
+    document.getElementById('frost').style.opacity = '0';
+    document.getElementById('vapor').style.opacity = '0';
+    document.getElementById('canContainer').style.transform = '';
+    document.getElementById('splashes').innerHTML = '';
+    document.querySelectorAll('.bubble-dynamic').forEach(b => b.remove());
+    const btn = document.getElementById('btn');
+    btn.textContent = '🍺 Pour Drink';
+    btn.style.background = 'linear-gradient(180deg, #DAA520, #B8860B)';
+    btn.style.color = '#1a1a1a';
+    btn.onclick = pourDrink;
+  }
+
+  function createSplashes() {
+    const container = document.getElementById('splashes');
+    for (let i = 0; i < 20; i++) {
+      setTimeout(() => {
+        const s = document.createElement('div');
+        s.className = 'splash';
+        s.style.left = (180 + Math.random() * 100) + 'px';
+        s.style.bottom = (50 + Math.random() * 30) + 'px';
+        s.style.width = (4 + Math.random() * 8) + 'px';
+        s.style.height = s.style.width;
+        s.style.opacity = '1';
+        s.style.transition = 'all 0.8s ease-out';
+        container.appendChild(s);
+
+        requestAnimationFrame(() => {
+          s.style.transform = `translate(${(Math.random()-0.5)*80}px, ${-40-Math.random()*60}px)`;
+          s.style.opacity = '0';
+        });
+
+        setTimeout(() => s.remove(), 1000);
+      }, i * 50);
+    }
+  }
+
+  function createBubbles() {
+    const glassBody = document.querySelector('.glass-body');
+    for (let i = 0; i < 8; i++) {
+      const b = document.createElement('div');
+      b.className = 'bubble bubble-dynamic';
+      b.style.width = (3 + Math.random() * 6) + 'px';
+      b.style.height = b.style.width;
+      b.style.left = (15 + Math.random() * 65) + 'px';
+      b.style.bottom = (15 + Math.random() * 50) + 'px';
+      b.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+      b.style.animationDelay = (Math.random() * 2) + 's';
+      glassBody.appendChild(b);
+    }
+  }
+
+  // Hover effect on tab
+  document.getElementById('tab').addEventListener('click', pourDrink);
+</script>
+
+</body>
+</html>
